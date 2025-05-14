@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package evaluation;
+
+service EvaluationService {
+  rpc EvaluateAlgorithm(EvaluationRequest) returns (stream SonarDataChunk);
+}
+
+message EvaluationRequest {
+  string dataset_id = 1; // This will be the dataset_identifier (e.g., filename)
+  DeviceConfig device_config = 2;
+}
+
+message SonarDataChunk {
+  int64 sequence_number = 1;
+  bytes data = 2;
+  int64 timestamp_ns = 3;
+}
+
+message DeviceConfig {
+  float simulated_bandwidth_mbps = 1;
+  int32 simulated_delay_ms = 2;
+}

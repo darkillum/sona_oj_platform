@@ -1,0 +1,111 @@
+{# sonar_oj_platform_project_root/templates/admin/admin_dashboard.html #}
+{% extends "_base.html" %}
+
+{% block title %}管理员面板 - {{ super() }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">管理员面板</h1>
+<p class="lead">欢迎回来, {{ current_user.username }}!</p>
+
+<ul class="nav nav-tabs mb-3" id="adminTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="submissions-tab-btn" data-bs-toggle="tab" data-bs-target="#submissions-panel" type="button" role="tab" aria-controls="submissions-panel" aria-selected="true">所有提交记录</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="problems-tab-btn" data-bs-toggle="tab" data-bs-target="#problems-panel" type="button" role="tab" aria-controls="problems-panel" aria-selected="false">题目管理</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="users-tab-btn" data-bs-toggle="tab" data-bs-target="#users-panel" type="button" role="tab" aria-controls="users-panel" aria-selected="false">用户管理</button>
+  </li>
+</ul>
+
+<div class="tab-content card card-body border-top-0 shadow-sm" id="adminTabContent">
+  <div class="tab-pane fade show active p-3" id="submissions-panel" role="tabpanel" aria-labelledby="submissions-tab-btn">
+    <h4 class="mb-3">所有提交记录</h4>
+    {% if submissions.items %}
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle table-striped">
+            <thead class="table-light">
+                <tr><th>ID</th><th>用户</th><th>题目</th><th>提交时间 (UTC)</th><th>状态</th><th>得分</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+            {% for sub in submissions.items %}
+                <tr>
+                    <td><a href="{{ url_for('submission.detail', submission_id=sub.id) }}">{{ sub.id[:8] }}...</a></td>
+                    <td>{{ sub.author.username }}</td>
+                    <td><a href="{{ url_for('problem.detail', problem_id=sub.problem.id) }}">{{ sub.problem.title }}</a></td>
+                    <td>{{ sub.submitted_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td><span class="badge bg-{{ sub.status.name | lower }}">{{ sub.status.value }}</span></td>
+                    <td>{{ "%.2f"|format(sub.score) if sub.score is not none else 'N/A' }}</td>
+                    <td><a href="{{ url_for('submission.detail', submission_id=sub.id) }}" class="btn btn-sm btn-outline-info">查看</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+        {% if submissions.total > submissions.per_page %}
+        <nav aria-label="所有提交记录分页" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if not submissions.has_prev %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('admin.dashboard', page=submissions.prev_num if submissions.has_prev else 1) }}">上一页</a>
+                </li>
+                {% for page_num in submissions.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if page_num %}
+                        <li class="page-item {% if page_num == submissions.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('admin.dashboard', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if not submissions.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('admin.dashboard', page=submissions.next_num if submissions.has_next else submissions.pages) }}">下一页</a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+    {% else %}
+        <p class="text-muted">系统中还没有任何提交记录。</p>
+    {% endif %}
+  </div>
+
+  <div class="tab-pane fade p-3" id="problems-panel" role="tabpanel" aria-labelledby="problems-tab-btn">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>题目管理</h4>
+        <a href="{{ url_for('admin.new_problem') }}" class="btn btn-primary">
+             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg me-1" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2"/></svg>
+            添加新题目
+        </a>
+    </div>
+    {% if problems %}
+    <ul class="list-group">
+        {% for problem in problems %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                <a href="{{ url_for('problem.detail', problem_id=problem.id) }}">{{ problem.title }}</a>
+                <small class="d-block text-muted">ID: {{problem.id}}, 数据集: <code>{{problem.dataset_identifier}}</code></small>
+            </div>
+            <span>
+                <a href="{{ url_for('admin.edit_problem', problem_id=problem.id) }}" class="btn btn-sm btn-outline-secondary">编辑</a>
+            </span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+        <p class="text-muted">系统中还没有题目。 <a href="{{ url_for('admin.new_problem') }}">现在添加一个</a>。</p>
+    {% endif %}
+  </div>
+
+  <div class="tab-pane fade p-3" id="users-panel" role="tabpanel" aria-labelledby="users-tab-btn">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>用户管理 (共 {{ users_count }} 位用户)</h4>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-plus-fill me-1" viewBox="0 0 16 16"><path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/><path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5"/></svg>
+            添加新用户
+        </a>
+    </div>
+     <p><a href="{{ url_for('admin.manage_users_route') }}" class="btn btn-outline-primary btn-sm">查看所有用户及详细信息</a></p>
+     <p class="text-muted small mt-2">完整的用户列表和管理功能请点击上方链接。</p>
+  </div>
+</div>
+{% endblock %}

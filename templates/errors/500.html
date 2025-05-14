@@ -1,0 +1,11 @@
+{# sonar_oj_platform_project_root/templates/errors/500.html #}
+{% extends "_base.html" %}
+{% block title %}服务器内部错误 (500) - {{ super() }}{% endblock %}
+{% block content %}
+<div class="text-center py-5">
+    <h1 class="display-1 text-danger">500</h1>
+    <h2 class="mb-3">服务器内部错误</h2>
+    <p class="lead mb-4">抱歉，服务器遇到了一些问题，导致无法完成您的请求。我们已经被通知并将尽快处理。</p>
+    <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-lg">返回首页</a>
+</div>
+{% endblock %}

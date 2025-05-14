@@ -1,0 +1,33 @@
+{# sonar_oj_platform_project_root/templates/auth/login.html #}
+{% extends "_base.html" %}
+{% from "_macros.html" import render_field %}
+
+{% block title %}用户登录 - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-md-5">
+    <div class="col-md-6 col-lg-5 col-xl-4">
+        <div class="card shadow-sm">
+            <div class="card-body p-4 p-md-5">
+                <h2 class="card-title text-center fw-bold mb-4">用户登录</h2>
+                <form method="POST" action="{{ url_for('auth.login') }}" novalidate>
+                    {{ form.hidden_tag() }}
+                    {{ render_field(form.username, placeholder_custom="请输入您的用户名") }}
+                    {{ render_field(form.password, placeholder_custom="请输入您的密码") }}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        {{ render_field(form.remember_me) }}
+                    </div>
+                    <div class="d-grid">
+                         {{ render_field(form.submit, field_class_custom="btn-lg w-100") }}
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center py-3 bg-light">
+                <small class="text-muted">
+                    还没有账户? <a href="{{ url_for('auth.register') }}">立即注册</a>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

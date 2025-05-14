@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分层架构设计图 (SVG绘制)</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; line-height: 1.6; background-color: #f4f4f4; color: #333; }
+        h1 { color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px;}
+        .container { width: 90%; max-width: 1000px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        .diagram-section { margin-bottom: 40px; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; text-align: center; }
+        .notes { font-style: italic; color: #555; margin-top:10px; text-align: left; }
+        svg {
+            border: 1px solid #ccc;
+            background-color: #ffffff;
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>分层架构设计图 (基于文档4.1节 - SVG 绘制)</h1>
+
+        <div class="diagram-section">
+            <p class="notes">此图使用SVG直接在网页中绘制文档4.1节中描述的分层架构。</p>
+
+            <svg width="800" height="750" viewBox="0 0 800 750" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto" markerUnits="strokeWidth">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+                    </marker>
+                </defs>
+
+                <style>
+                    .layer-box {
+                        stroke: #777;
+                        stroke-width: 1.5;
+                        stroke-dasharray: 4, 2;
+                    }
+                    .layer-label {
+                        font-family: sans-serif;
+                        font-size: 14px;
+                        font-weight: bold;
+                        fill: #444;
+                        text-anchor: middle;
+                    }
+                    .component-box {
+                        fill: #e3f2fd; /* Light blue for components */
+                        stroke: #64b5f6; /* Medium blue for component stroke */
+                        stroke-width: 1;
+                        rx:5; ry:5;
+                    }
+                    .component-label {
+                        font-family: sans-serif;
+                        font-size: 11px;
+                        fill: #212121;
+                        text-anchor: middle;
+                        dominant-baseline: central;
+                    }
+                    .component-sublabel {
+                        font-family: sans-serif;
+                        font-size: 9px;
+                        fill: #555;
+                        text-anchor: middle;
+                        dominant-baseline: central;
+                    }
+                    .arrow {
+                        stroke: #555;
+                        stroke-width: 1.5;
+                        marker-end: url(#arrowhead);
+                        fill: none;
+                    }
+                     .interaction-label {
+                        font-family: sans-serif;
+                        font-size: 9px;
+                        fill: #4CAF50; /* Green for interaction labels */
+                        text-anchor: middle;
+                    }
+                </style>
+
+                <rect x="10" y="10" width="780" height="120" fill="#f5f5f5" class="layer-box"/>
+                <text x="400" y="30" class="layer-label">表现层 (Presentation Layer)</text>
+
+                <g id="web-browser">
+                    <rect x="300" y="50" width="200" height="60" class="component-box"/>
+                    <text x="400" y="75" class="component-label">用户 Web 浏览器</text>
+                    <text x="400" y="90" class="component-sublabel">(User via Browser)</text>
+                </g>
+
+                <rect x="10" y="140" width="780" height="220" fill="#e8eaf6" class="layer-box"/>
+                <text x="400" y="160" class="layer-label">应用逻辑层 (Application Logic Layer)</text>
+
+                <g id="flask-app">
+                    <rect x="50" y="180" width="220" height="100" class="component-box"/>
+                    <text x="160" y="205" class="component-label">Flask Web 应用</text>
+                    <text x="160" y="220" class="component-sublabel">(app.py, routes/, Auth, ORM)</text>
+                    <text x="160" y="235" class="component-sublabel">用户/题目/提交管理</text>
+                    <text x="160" y="250" class="component-sublabel">启动异步判题</text>
+                </g>
+                <g id="judging-thread">
+                    <rect x="300" y="230" width="180" height="70" class="component-box" fill="#fff9c4"/> <text x="390" y="255" class="component-label">后台判题线程</text>
+                    <text x="390" y="270" class="component-sublabel">(run_evaluation_logic_thread)</text>
+                </g>
+                 <g id="scoring-module">
+                    <rect x="530" y="230" width="180" height="70" class="component-box" fill="#c8e6c9"/> <text x="620" y="255" class="component-label">评分模块</text>
+                    <text x="620" y="270" class="component-sublabel">(scoring_strategies.py)</text>
+                </g>
+
+                <rect x="10" y="370" width="780" height="180" fill="#e0f2f1" class="layer-box"/>
+                <text x="400" y="390" class="layer-label">判题与数据服务层 (Judging and Data Service Layer)</text>
+
+                <g id="algorithm-executor">
+                    <rect x="100" y="420" width="250" height="100" class="component-box"/>
+                    <text x="225" y="445" class="component-label">算法执行器 (algorithm_runner.py)</text>
+                    <text x="225" y="460" class="component-sublabel">- gRPC 客户端</text>
+                    <text x="225" y="475" class="component-sublabel">- 用户代码动态加载/执行</text>
+                    <text x="225" y="490" class="component-sublabel">- 日志重定向</text>
+                </g>
+                <g id="grpc-server">
+                    <rect x="450" y="420" width="250" height="100" class="component-box"/>
+                    <text x="575" y="445" class="component-label">gRPC 数据流服务器</text>
+                    <text x="575" y="460" class="component-sublabel">(grpc_server.py)</text>
+                    <text x="575" y="475" class="component-sublabel">- 数据分块与流式发送</text>
+                    <text x="575" y="490" class="component-sublabel">- 网络条件模拟</text>
+                </g>
+
+                <rect x="10" y="560" width="780" height="150" fill="#efebe9" class="layer-box"/>
+                <text x="400" y="580" class="layer-label">数据持久层 (Data Persistence Layer)</text>
+
+                <g id="database-sqlite">
+                    <rect x="300" y="610" width="200" height="70" class="component-box"/>
+                    <text x="400" y="640" class="component-label">数据库 (SQLite)</text>
+                    <text x="400" y="655" class="component-sublabel">(instance/site.db)</text>
+                </g>
+
+                <path d="M 400 110 L 400 170 L 270 170 L 270 200 L 160 200" class="arrow"/> <text x="330" y="160" class="interaction-label">HTTP Requests / HTML</text>
+
+                <line x1="270" y1="230" x2="300" y2="255" class="arrow"/>
+                <text x="295" y="220" class="interaction-label">Starts</text>
+
+                <path d="M 390 300 L 390 350 L 225 350 L 225 420" class="arrow"/>
+                <text x="320" y="345" class="interaction-label">Spawns Process</text>
+
+                <line x1="480" y1="265" x2="530" y2="265" class="arrow"/>
+                <text x="505" y="255" class="interaction-label">Calls</text>
+
+                <line x1="350" y1="470" x2="450" y2="470" class="arrow"/>
+                <text x="400" y="460" class="interaction-label">gRPC Request (Data Stream)</text>
+                <line x1="450" y1="480" x2="350" y2="480" class="arrow"/>
+                <text x="400" y="495" class="interaction-label">gRPC Data Chunks</text>
+
+
+                <path d="M 160 280 L 160 580 L 300 580 L 300 620 L 400 620" stroke="#555" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)"/>
+                <text x="230" y="595" class="interaction-label">DB Operations (ORM)</text>
+
+                <line x1="575" y1="520" x2="575" y2="550" class="arrow" stroke-dasharray="5,5"/>
+                <text x="575" y="535" class="interaction-label">Accesses Problem Data Files</text>
+
+            </svg>
+
+            <p class="notes" style="margin-top:20px;">
+                <strong>说明:</strong>
+                <ul>
+                    <li>矩形框代表各层或层内主要组件。</li>
+                    <li>箭头表示主要的数据流或控制流方向。</li>
+                    <li>此图旨在清晰展示分层结构和跨层交互。</li>
+                </ul>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

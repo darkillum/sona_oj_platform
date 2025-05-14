@@ -1,0 +1,49 @@
+{# sonar_oj_platform_project_root/templates/_macros.html #}
+{% macro render_field(field, sr_only_label=False, field_class_custom='', placeholder_custom=None, html_attrs=None) %}
+  <div class="mb-3 field-{{ field.id or field.name }}">
+    {% if field.type != 'HiddenField' and field.type != 'CSRFTokenField' and field.type != 'SubmitField' and not sr_only_label %}
+        {{ field.label(class="form-label fw-medium") }}
+    {% endif %}
+
+    {% set current_placeholder = placeholder_custom %}
+    {% if current_placeholder is none and sr_only_label and hasattr(field, 'label') and field.label and hasattr(field.label, 'text') %}
+        {% set current_placeholder = field.label.text %}
+    {% endif %}
+
+    {% set base_class = 'form-control' %}
+    {% if field.type == 'BooleanField' %}
+        {% set base_class = 'form-check-input' %}
+    {% elif field.type == 'RadioField' or field.type == 'SelectField' or field.type == 'SelectMultipleField' %}
+        {% set base_class = 'form-select' %}
+    {% elif field.type == 'SubmitField' %}
+         {% set base_class = 'btn btn-primary' %}
+    {% endif %}
+
+    {% set combined_class = base_class %}
+    {% if field_class_custom %}
+        {% set combined_class = combined_class + ' ' + field_class_custom %}
+    {% endif %}
+    {% if field.errors %}
+        {% set combined_class = combined_class + ' is-invalid' %}
+    {% endif %}
+
+    {% if field.type == 'BooleanField' %}
+        <div class="form-check">
+            {{ field(class=combined_class, **(html_attrs if html_attrs is mapping else {})) }}
+            {{ field.label(class="form-check-label") }}
+        </div>
+    {% elif field.type != 'HiddenField' and field.type != 'CSRFTokenField' %}
+        {{ field(class=combined_class, placeholder=(current_placeholder if current_placeholder is not none else ''), **(html_attrs if html_attrs is mapping else {})) }}
+    {% else %}
+        {{ field(**(html_attrs if html_attrs is mapping else {})) }}
+    {% endif %}
+
+    {% if field.errors %}
+      <div class="invalid-feedback d-block">
+          {% for error in field.errors %}
+            <span>{{ error }}</span><br>
+          {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+{% endmacro %}

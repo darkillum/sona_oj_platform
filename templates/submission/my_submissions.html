@@ -1,0 +1,65 @@
+{# sonar_oj_platform_project_root/templates/submission/my_submissions.html #}
+{% extends "_base.html" %}
+
+{% block title %}我的提交记录 - {{ super() }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">我的提交记录</h1>
+
+{% if submissions.items %}
+<div class="table-responsive shadow-sm rounded">
+    <table class="table table-hover align-middle table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">提交ID</th>
+                <th scope="col">题目名称</th>
+                <th scope="col">提交时间 (UTC)</th>
+                <th scope="col">状态</th>
+                <th scope="col">得分</th>
+                <th scope="col">网络配置 (带宽/延迟)</th>
+                <th scope="col">操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in submissions.items %}
+            <tr>
+                <td><a href="{{ url_for('submission.detail', submission_id=sub.id) }}">{{ sub.id[:8] }}...</a></td>
+                <td><a href="{{ url_for('problem.detail', problem_id=sub.problem.id) }}">{{ sub.problem.title }}</a></td>
+                <td>{{ sub.submitted_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td><span class="badge bg-{{ sub.status.name | lower }}">{{ sub.status.value }}</span></td>
+                <td>{{ "%.2f"|format(sub.score) if sub.score is not none else 'N/A' }}</td>
+                <td>{{ sub.actual_bandwidth_mbps }} Mbps / {{ sub.actual_latency_ms }} ms</td>
+                <td><a href="{{ url_for('submission.detail', submission_id=sub.id) }}" class="btn btn-sm btn-outline-primary">查看详情</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+    {% if submissions.total > submissions.per_page %}
+    <nav aria-label="我的提交记录分页" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if not submissions.has_prev %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('submission.list_my_submissions', page=submissions.prev_num if submissions.has_prev else 1) }}">上一页</a>
+            </li>
+            {% for page_num in submissions.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if page_num %}
+                    <li class="page-item {% if page_num == submissions.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('submission.list_my_submissions', page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+            {% endfor %}
+            <li class="page-item {% if not submissions.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('submission.list_my_submissions', page=submissions.next_num if submissions.has_next else submissions.pages) }}">下一页</a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+{% else %}
+    <div class="alert alert-info mt-4" role="alert">
+        您还没有任何提交记录。 <a href="{{ url_for('main.index') }}" class="alert-link">查看题目列表</a> 开始答题吧！
+    </div>
+{% endif %}
+{% endblock %}

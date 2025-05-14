@@ -1,0 +1,72 @@
+{# sonar_oj_platform_project_root/templates/problem/index.html #}
+{% extends "_base.html" %}
+
+{% block title %}题目列表 - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+    <h1 class="mb-2 mb-md-0">题目列表</h1>
+    {% if current_user.is_authenticated and current_user.role == UserRole.ADMIN %}
+        <a href="{{ url_for('admin.new_problem') }}" class="btn btn-success">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle-fill me-1" viewBox="0 0 16 16">
+              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
+            </svg>
+            添加新题目
+        </a>
+    {% endif %}
+</div>
+
+{% if problems.items %}
+    <div class="list-group shadow-sm">
+        {% for problem in problems.items %}
+        <div class="list-group-item list-group-item-action flex-column align-items-start py-3 px-4 mb-2 border rounded">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">
+                    <a href="{{ url_for('problem.detail', problem_id=problem.id) }}" class="text-decoration-none text-primary stretched-link">{{ problem.title }}</a>
+                </h5>
+                <small class="text-muted">#{{ problem.id }}</small>
+            </div>
+            <p class="mb-2 text-muted" style="font-size: 0.9em;">{{ problem.description | striptags | truncate(180, True, '...') }}</p>
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    默认网络: {{ problem.default_bandwidth_mbps }} Mbps / {{ problem.default_latency_ms }} ms
+                </small>
+                {% if current_user.is_authenticated and current_user.role == UserRole.ADMIN %}
+                    <a href="{{ url_for('admin.edit_problem', problem_id=problem.id) }}" class="btn btn-sm btn-outline-secondary position-relative" style="z-index: 2;">编辑</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if problems.total > problems.per_page %}
+    <nav aria-label="题目分页导航" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if not problems.has_prev %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('main.index', page=problems.prev_num if problems.has_prev else 1) }}">上一页</a>
+            </li>
+            {% for page_num in problems.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    <li class="page-item {% if page_num == problems.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('main.index', page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+            {% endfor %}
+            <li class="page-item {% if not problems.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('main.index', page=problems.next_num if problems.has_next else problems.pages) }}">下一页</a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+
+{% else %}
+    <div class="alert alert-info mt-4" role="alert">
+        当前没有可用的题目。
+        {% if current_user.is_authenticated and current_user.role == UserRole.ADMIN %}
+            您可以点击上方的 "添加新题目" 按钮来创建题目。
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}

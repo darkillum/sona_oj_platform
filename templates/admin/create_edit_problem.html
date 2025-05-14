@@ -1,0 +1,66 @@
+{# sonar_oj_platform_project_root/templates/admin/create_edit_problem.html #}
+{% extends "_base.html" %}
+{% from "_macros.html" import render_field %}
+
+{% block title %}{{ legend }} - 管理员 - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-9 col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                 <h2 class="card-title text-center mb-0 py-2 h4">{{ legend }}</h2>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    {{ render_field(form.title, placeholder_custom="例如：声纳目标回波强度分析") }}
+
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label fw-medium") }}
+                        {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="10", placeholder="详细描述题目背景、任务要求、输入数据格式、期望输出格式、评分标准等。") }}
+                        {% if form.description.errors %}
+                          <div class="invalid-feedback d-block">
+                              {% for error in form.description.errors %}<span>{{ error }}</span><br>{% endfor %}
+                          </div>
+                        {% endif %}
+                        <small class="form-text text-muted">建议使用 Markdown 格式化题目描述 (前端渲染时需要配合 Markdown 解析库)。</small>
+                    </div>
+
+                    <div class="alert alert-secondary small mt-3 py-2">
+                        <strong class="d-block mb-1">数据集标识符说明:</strong>
+                        此标识符应为数据文件的确切文件名 (例如, <code>sonar_data_set_alpha.bin</code>)。
+                        您需要将此文件手动放置在服务器的 <code>{{ config.PROBLEM_DATA_FOLDER }}</code> 目录中。
+                        判题系统将根据此标识符从此目录读取数据流。
+                    </div>
+                    {{ render_field(form.dataset_identifier, placeholder_custom="例如：problem_alpha_data.bin") }}
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {{ render_field(form.default_bandwidth_mbps) }}
+                        </div>
+                        <div class="col-md-6">
+                             {{ render_field(form.default_latency_ms) }}
+                        </div>
+                    </div>
+
+                    <div class="alert alert-secondary small mt-3 py-2">
+                        <strong class="d-block mb-1">评分函数名称说明:</strong>
+                        此名称对应于服务器端 <code>scoring_strategies.py</code> 文件中定义的 Python 函数的键名
+                        (例如, <code>default_log_scorer</code> 或您自定义的评分函数名)。
+                    </div>
+                    {{ render_field(form.scoring_function_name) }}
+
+                    <hr class="my-4">
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary px-4">取消</a>
+                        {{ render_field(form.submit, field_class_custom="btn-primary px-4") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

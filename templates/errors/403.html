@@ -1,0 +1,11 @@
+{# sonar_oj_platform_project_root/templates/errors/403.html #}
+{% extends "_base.html" %}
+{% block title %}禁止访问 (403) - {{ super() }}{% endblock %}
+{% block content %}
+<div class="text-center py-5">
+    <h1 class="display-1 text-danger">403</h1>
+    <h2 class="mb-3">禁止访问</h2>
+    <p class="lead mb-4">抱歉，您没有权限访问此页面。</p>
+    <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-lg">返回首页</a>
+</div>
+{% endblock %}

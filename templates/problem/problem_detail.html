@@ -1,0 +1,116 @@
+{# sonar_oj_platform_project_root/templates/problem/problem_detail.html #}
+{% extends "_base.html" %}
+{% from "_macros.html" import render_field %}
+
+{% block title %}{{ problem.title }} - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="problem-detail-container">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+        <h1 class="mb-2 mb-md-0 display-5">{{ problem.title }}</h1>
+        <div>
+            <a href="{{ url_for('main.index') }}" class="btn btn-sm btn-outline-secondary me-2">
+                <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" width="16" height="16" fill="currentColor" class="bi bi-arrow-left-circle me-1" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5z"/></svg>
+                返回题目列表
+            </a>
+            {% if current_user.is_authenticated and current_user.role == UserRole.ADMIN %}
+                <a href="{{ url_for('admin.edit_problem', problem_id=problem.id) }}" class="btn btn-sm btn-primary">
+                    <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" width="16" height="16" fill="currentColor" class="bi bi-pencil-square me-1" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/></svg>
+                    编辑题目
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    <hr class="mb-4">
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <h4 class="mb-3">题目描述</h4>
+            <div class="card card-body bg-light problem-description-markdown shadow-sm">
+                <div style="white-space: pre-wrap; font-size: 1.05em;">{{ problem.description | safe if problem.description else "暂无详细描述。" }}</div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <h4 class="mb-3">题目信息</h4>
+            <ul class="list-group mb-4 shadow-sm">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    数据集标识: <span class="badge bg-secondary rounded-pill">{{ problem.dataset_identifier }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    默认带宽: <span class="badge bg-info rounded-pill">{{ problem.default_bandwidth_mbps }} Mbps</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    默认延迟: <span class="badge bg-info rounded-pill">{{ problem.default_latency_ms }} ms</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    评分策略: <span class="badge bg-dark rounded-pill">{{ problem.scoring_function_name }}</span>
+                </li>
+                 <li class="list-group-item d-flex justify-content-between align-items-center">
+                    创建时间: <span class="text-muted">{{ problem.created_at.strftime('%Y-%m-%d %H:%M') }} UTC</span>
+                </li>
+            </ul>
+
+            <h4 class="mb-3">提交你的解答</h4>
+            <div class="card card-body shadow-sm">
+                <form method="POST" action="{{ url_for('problem.detail', problem_id=problem.id) }}" enctype="multipart/form-data" novalidate>
+                    {{ form.hidden_tag() }}
+                    {{ render_field(form.algorithm_script) }}
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            {{ render_field(form.bandwidth_mbps, placeholder_custom="默认: " ~ problem.default_bandwidth_mbps) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ render_field(form.latency_ms, placeholder_custom="默认: " ~ problem.default_latency_ms) }}
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        {{ render_field(form.submit, field_class_custom="btn-success btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% if submissions and submissions.items %}
+    <h4 class="mt-5 mb-3">你对该题目的提交记录:</h4>
+    <div class="list-group shadow-sm">
+        {% for sub in submissions.items %}
+        <a href="{{ url_for('submission.detail', submission_id=sub.id) }}" class="list-group-item list-group-item-action py-3">
+            <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">提交 ID: {{ sub.id[:8] }}...</h6>
+                <small class="text-muted">{{ sub.submitted_at.strftime('%Y-%m-%d %H:%M:%S') }} UTC</small>
+            </div>
+            <p class="mb-1">
+                状态: <span class="badge bg-{{ sub.status.name | lower }}">{{ sub.status.value }}</span>
+                {% if sub.score is not none %} | 得分: <span class="fw-bold">{{ "%.2f"|format(sub.score) }}</span>{% endif %}
+            </p>
+            <small class="text-muted">网络配置: {{ sub.actual_bandwidth_mbps }} Mbps 带宽, {{ sub.actual_latency_ms }} ms 延迟</small>
+        </a>
+        {% endfor %}
+    </div>
+    {% if submissions.total > submissions.per_page %}
+    <nav aria-label="用户提交记录分页" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if not submissions.has_prev %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('problem.detail', problem_id=problem.id, page=submissions.prev_num if submissions.has_prev else 1) }}">上一页</a>
+            </li>
+            {% for page_num in submissions.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if page_num %}
+                    <li class="page-item {% if page_num == submissions.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('problem.detail', problem_id=problem.id, page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+            {% endfor %}
+            <li class="page-item {% if not submissions.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('problem.detail', problem_id=problem.id, page=submissions.next_num if submissions.has_next else submissions.pages) }}">下一页</a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+    {% elif current_user.is_authenticated %}
+        <div class="alert alert-light mt-4 text-center">你还没有针对此题目的提交记录。</div>
+    {% endif %}
+</div>
+{% endblock %}

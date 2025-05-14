@@ -1,0 +1,78 @@
+{# sonar_oj_platform_project_root/templates/submission/submission_detail.html #}
+{% extends "_base.html" %}
+
+{% block title %}提交详情 {{ submission.id[:8] }} - {{ super() }}{% endblock %}
+
+{% block head_extra %}
+{# 如果提交仍在处理中，则每5秒自动刷新页面 #}
+{% if submission.status in [SubmissionStatus.PENDING, SubmissionStatus.RUNNING, SubmissionStatus.INITIALIZING] %}
+    <meta http-equiv="refresh" content="5">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="submission-detail-container">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+        <h1 class="mb-2 mb-md-0 display-6">提交详情 <small class="text-muted fs-5">(ID: {{ submission.id }})</small></h1>
+        <div>
+             <a href="{{ url_for('problem.detail', problem_id=submission.problem.id) }}" class="btn btn-sm btn-outline-secondary me-2">返回题目</a>
+             <a href="{{ url_for('submission.list_my_submissions') }}" class="btn btn-sm btn-outline-primary">我的提交记录</a>
+        </div>
+    </div>
+    <hr class="mb-4">
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light py-3">
+            <h4 class="mb-0">基本信息</h4>
+        </div>
+        <div class="card-body p-4">
+            <div class="row">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <p><strong>题目:</strong> <a href="{{ url_for('problem.detail', problem_id=submission.problem.id) }}">{{ submission.problem.title }}</a></p>
+                    <p><strong>提交者:</strong> {{ submission.author.username }}</p>
+                    <p><strong>提交时间:</strong> {{ submission.submitted_at.strftime('%Y-%m-%d %H:%M:%S') }} UTC</p>
+                    <p class="mb-0"><strong>算法脚本:</strong> <code>{{ submission.algorithm_script_filename }}</code></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>状态:</strong> <span class="badge fs-6 bg-{{ submission.status.name | lower }}">{{ submission.status.value }}</span></p>
+                    <p><strong>得分:</strong> <span class="fw-bold fs-5">{{ "%.2f"|format(submission.score) if submission.score is not none else '判题中...' }}</span></p>
+                    <p><strong>网络配置 (带宽/延迟):</strong> {{ submission.actual_bandwidth_mbps }} Mbps / {{ submission.actual_latency_ms }} ms</p>
+                    <p class="mb-0"><strong>判题辅助脚本退出码:</strong> {{ submission.return_code if submission.return_code is not none else 'N/A' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if detailed_results %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light py-3">
+            <h4 class="mb-0">评分详情</h4>
+        </div>
+        <div class="card-body p-0">
+            {# 修正：移除了 ensure_ascii=False #}
+            <pre class="log-output p-3 mb-0" style="max-height: 350px; background-color: #f8f9fa; border-radius: 0 0 var(--bs-card-inner-border-radius) var(--bs-card-inner-border-radius);">{{ detailed_results | tojson(indent=2) if detailed_results is mapping else detailed_results }}</pre>
+        </div>
+    </div>
+    {% elif submission.status == SubmissionStatus.COMPLETED %}
+     <div class="alert alert-secondary">暂无详细评分结果。</div>
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-light py-3">
+            <h4 class="mb-0">判题日志</h4>
+        </div>
+        <div class="card-body p-0">
+            <pre class="log-output border-0 p-3 mb-0 bg-white rounded-bottom">{{ log_content if log_content else '日志尚不可用或为空。' }}</pre>
+        </div>
+    </div>
+
+    {% if submission.status in [SubmissionStatus.PENDING, SubmissionStatus.RUNNING, SubmissionStatus.INITIALIZING] %}
+    <div class="alert alert-info mt-4 d-flex align-items-center" role="alert">
+        <div class="spinner-border spinner-border-sm me-2" role="status">
+            <span class="visually-hidden">加载中...</span>
+        </div>
+        此提交仍在处理中。页面将自动刷新以获取最新状态。
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+/* static/style.css */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f8f9fa; /* Light background for the whole page */
+}
+
+main.container {
+    flex: 1;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+}
+
+.navbar {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.card {
+    margin-top: 1.5rem;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+.card-header, .card-footer {
+    background-color: #f8f9fa;
+}
+
+
+.log-output {
+    background-color: #e9ecef; /* Slightly darker than page background */
+    color: #212529;
+    max-height: 600px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: 'SFMono-Regular', Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.875em; /* Slightly smaller for dense logs */
+    padding: 1rem;
+    border-radius: 0.25rem;
+    border: 1px solid #ced4da;
+}
+
+.table th, .table td {
+    vertical-align: middle;
+}
+
+.badge {
+    font-size: 0.85em;
+    padding: 0.4em 0.6em;
+}
+
+/* Consistent button styling */
+.btn {
+    border-radius: 0.25rem;
+    padding: 0.5rem 1rem;
+}
+
+.form-control, .form-select {
+    border-radius: 0.25rem;
+}
+.form-label {
+    font-weight: 500;
+}
+
+footer {
+    padding: 1.5rem 0;
+    font-size: 0.9em;
+}
+
+/* For submission status colors */
+.bg-Pending, .bg-Initializing { background-color: #ffc107 !important; color: #000 !important; } /* Bootstrap warning */
+.bg-Running { background-color: #0dcaf0 !important; color: #000 !important; } /* Bootstrap info */
+.bg-Completed { background-color: #198754 !important; } /* Bootstrap success */
+.bg-Failed, .bg-Error_Starting, .bg-Timeout { background-color: #dc3545 !important; } /* Bootstrap danger */
